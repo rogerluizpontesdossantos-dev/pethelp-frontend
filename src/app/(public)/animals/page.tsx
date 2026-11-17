@@ -1,127 +1,148 @@
 
+import { Suspense } from "react";
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { ArrowLeft, Heart, MapPin, ShieldCheck } from "lucide-react";
+import { Search } from "lucide-react";
+import AnimalCard from "@/components/animals/AnimalCard";
 import { animals } from "@/data/animals";
 
 export const metadata: Metadata = {
-  title: "Conheça o animal",
+  title: "Animais disponíveis | PetHelp",
 };
 
-export function generateStaticParams() {
-  return animals.map((animal) => ({
-    id: animal.id,
-  }));
-}
-
-type AnimalDetailsPageProps = {
-  params: Promise<{ id: string }>;
+type AnimalsPageProps = {
+  searchParams: Promise<{ q?: string | string[] }>;
 };
 
-export default async function AnimalDetailsPage({
-  params,
-}: AnimalDetailsPageProps) {
-  const { id } = await params;
-  const animal = animals.find((item) => item.id === id);
+async function AnimalsResults({ searchParams }: AnimalsPageProps) {
+  const resolvedSearchParams = await searchParams;
+  const rawQuery = resolvedSearchParams.q;
+  const query = Array.isArray(rawQuery) ? rawQuery[0] ?? "" : rawQuery ?? "";
+  const normalizedQuery = query.trim().toLowerCase();
 
-  if (!animal) {
-    notFound();
-  }
+  const filteredAnimals = normalizedQuery
+    ? animals.filter((animal) => {
+        const haystack = [
+          animal.name,
+          animal.species,
+          animal.breed,
+          animal.location,
+        ]
+          .join(" ")
+          .toLowerCase();
+        return haystack.includes(normalizedQuery);
+      })
+    : animals;
 
   return (
-    <section className="min-h-screen py-12 md:py-16">
-      <div className="mx-auto max-w-6xl px-5 lg:px-8">
-        <Link
-          href="/animals"
-          className="inline-flex items-center gap-2 text-sm font-semibold text-[#245c46]"
+    <>
+      <form
+        action="/animals"
+        method="get"
+        className="mt-8 flex max-w-2xl flex-col gap-3 rounded-2xl border border-[#e7e9e2] bg-white p-3 shadow-lg shadow-[#334b37]/5 sm:flex-row"
+      >
+        <label className="flex min-w-0 flex-1 items-center gap-3 px-3">
+          <Search size={20} className="shrink-0 text-[#78917b]" />
+          <input
+            name="q"
+            type="search"
+            defaultValue={query}
+            placeholder="Busque por nome, espécie, raça ou localização"
+            className="w-full min-w-0 bg-transparent py-3 text-sm text-[#292f2b] outline-none placeholder:text-[#a1a79f]"
+          />
+        </label>
+        <button
+          type="submit"
+          className="rounded-xl bg-[#245c46] px-7 py-4 text-sm font-semibold text-white transition hover:bg-[#194532]"
         >
-          <ArrowLeft size={17} />
-          Voltar para os animais
-        </Link>
+          Buscar
+        </button>
+      </form>
 
-        <div className="mt-8 grid gap-10 lg:grid-cols-2">
-          <div className="relative min-h-[350px] overflow-hidden rounded-3xl bg-[#e9f1e8] md:min-h-[540px]">
-            <Image
-              src={animal.image}
-              alt={`Foto de ${animal.name}`}
-              fill
-              unoptimized
-              sizes="(max-width: 1024px) 100vw, 50vw"
-              className="object-cover"
-            />
-          </div>
-
-          <div className="py-3">
-            <span className="rounded-full bg-[#e9f1e8] px-4 py-2 text-xs font-semibold text-[#245c46]">
-              {animal.species}
+      {normalizedQuery ? (
+        <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-[#69736a]">
+          <p>
+            {filteredAnimals.length} resultado
+            {filteredAnimals.length === 1 ? "" : "s"} para{" "}
+            <span className="font-semibold text-[#293b2f]">
+              &quot;{query.trim()}&quot;
             </span>
-
-            <h1 className="mt-6 text-4xl font-bold text-[#293b2f] md:text-5xl">
-              Conheça {animal.name}
-            </h1>
-
-            <p className="mt-3 text-sm text-[#858d85]">
-              {animal.breed}
-            </p>
-
-            <div className="mt-7 flex items-center gap-2 text-sm text-[#69736a]">
-              <MapPin size={17} />
-              {animal.location}
-            </div>
-
-            <div className="mt-8 grid grid-cols-2 gap-3">
-              {[
-                ["Idade", animal.age],
-                ["Porte", animal.size],
-                ["Sexo", animal.gender],
-                ["Espécie", animal.species],
-              ].map(([label, value]) => (
-                <div
-                  key={label}
-                  className="rounded-xl border border-[#e7eae3] bg-white p-4"
-                >
-                  <p className="text-xs text-[#858d85]">{label}</p>
-                  <p className="mt-2 text-sm font-bold text-[#293b2f]">
-                    {value}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-9">
-              <h2 className="text-lg font-bold text-[#293b2f]">
-                Sobre {animal.name}
-              </h2>
-              <p className="mt-3 text-sm leading-8 text-[#737d73]">
-                {animal.description}
-              </p>
-            </div>
-
-            <div className="mt-8 rounded-2xl bg-[#edf4eb] p-5">
-              <div className="flex items-center gap-2 text-sm font-bold text-[#245c46]">
-                <ShieldCheck size={19} />
-                Sobre o responsável
-              </div>
-              <p className="mt-2 text-sm text-[#647568]">
-                {animal.responsible}
-              </p>
-            </div>
-
-            <Link
-              href="/login"
-              className="mt-8 flex items-center justify-center gap-2 rounded-full bg-[#245c46] px-7 py-4 text-sm font-bold text-white transition hover:bg-[#194532]"
-            >
-              <Heart size={18} />
-              Tenho interesse em adotar
-            </Link>
-
-            <p className="mt-3 text-center text-xs text-[#929991]">
-              Você precisará entrar na sua conta para iniciar uma solicitação.
-            </p>
-          </div>
+          </p>
+          <Link
+            href="/animals"
+            className="font-semibold text-[#245c46] underline-offset-4 hover:underline"
+          >
+            Limpar pesquisa
+          </Link>
         </div>
+      ) : null}
+
+      {filteredAnimals.length > 0 ? (
+        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {filteredAnimals.map((animal) => (
+            <AnimalCard key={animal.id} animal={animal} />
+          ))}
+        </div>
+      ) : (
+        <div className="mt-10 rounded-2xl border border-[#e7eae3] bg-white p-8 text-center">
+          <h2 className="text-lg font-bold text-[#293b2f]">
+            Nenhum animal encontrado
+          </h2>
+          <p className="mt-3 text-sm leading-7 text-[#778078]">
+            Não encontramos resultados para &quot;{query.trim()}&quot;. Tente
+            buscar por outro nome, espécie, raça ou localização.
+          </p>
+          <Link
+            href="/animals"
+            className="mt-6 inline-flex items-center justify-center rounded-full bg-[#245c46] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#194532]"
+          >
+            Limpar pesquisa
+          </Link>
+        </div>
+      )}
+    </>
+  );
+}
+
+function AnimalsResultsFallback() {
+  return (
+    <>
+      <div className="mt-8 flex max-w-2xl flex-col gap-3 rounded-2xl border border-[#e7e9e2] bg-white p-3 shadow-lg shadow-[#334b37]/5 sm:flex-row">
+        <div className="h-[52px] min-w-0 flex-1 animate-pulse rounded-xl bg-[#edf4eb]" />
+        <div className="h-[52px] w-full animate-pulse rounded-xl bg-[#245c46]/20 sm:w-[120px]" />
+      </div>
+      <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <div
+            key={index}
+            className="h-[360px] animate-pulse rounded-2xl border border-[#e9ebe5] bg-white"
+          />
+        ))}
+      </div>
+    </>
+  );
+}
+
+export default function AnimalsPage({ searchParams }: AnimalsPageProps) {
+  return (
+    <section className="min-h-screen py-12 md:py-16">
+      <div className="mx-auto max-w-7xl px-5 lg:px-8">
+        <div className="max-w-2xl">
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#668b6f]">
+            Animais disponíveis
+          </p>
+          <h1 className="mt-3 text-3xl font-bold tracking-tight text-[#292f2b] md:text-4xl">
+            Encontre um novo amigo para chamar de seu.
+          </h1>
+          <p className="mt-4 text-sm leading-7 text-[#778078]">
+            Conheça os animais que estão esperando por uma família e encontre
+            aquele que combina com você.
+          </p>
+        </div>
+
+        <Suspense fallback={<AnimalsResultsFallback />}>
+          <AnimalsResults searchParams={searchParams} />
+        </Suspense>
       </div>
     </section>
   );
