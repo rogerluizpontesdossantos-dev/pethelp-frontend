@@ -9,7 +9,6 @@ import {
   HandHeart,
   Users,
   PawPrint,
-  MapPin,
 } from "lucide-react";
 import { animals } from "@/data/animals";
 import AnimalCard from "@/components/animals/AnimalCard";

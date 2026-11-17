@@ -126,16 +126,33 @@ async function AnimalDetails({ params }: AnimalDetailsPageProps) {
               </p>
             </div>
 
+            <div className="mt-8 rounded-2xl border border-[#dce8dc] bg-[#edf4eb] p-5">
+              <h2 className="text-sm font-bold text-[#245c46]">
+                Antes de demonstrar interesse
+              </h2>
+              <p className="mt-2 text-sm leading-7 text-[#4f6759]">
+                A adoção responsável considera rotina, tempo disponível, custos e
+                adaptação do animal. No PetHelp, a adoção é só o começo — o
+                acompanhamento após a adoção faz parte da proposta.
+              </p>
+              <p className="mt-3 text-xs leading-6 text-[#647568]">
+                O envio da solicitação será integrado ao backend em uma etapa
+                futura. Por enquanto, você pode entrar na sua conta para
+                acompanhar as próximas etapas.
+              </p>
+            </div>
+
             <Link
               href="/login"
-              className="mt-8 flex items-center justify-center gap-2 rounded-full bg-[#245c46] px-7 py-4 text-sm font-bold text-white transition hover:bg-[#194532]"
+              className="mt-6 flex items-center justify-center gap-2 rounded-full bg-[#245c46] px-7 py-4 text-sm font-bold text-white transition hover:bg-[#194532]"
             >
               <Heart size={18} />
               Tenho interesse em adotar
             </Link>
 
             <p className="mt-3 text-center text-xs text-[#929991]">
-              Você precisará entrar na sua conta para iniciar uma solicitação.
+              Você precisará entrar na sua conta quando a solicitação estiver
+              disponível.
             </p>
           </div>
         </div>

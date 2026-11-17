@@ -100,14 +100,14 @@ export default function AuthPage({
             disabled
             className="w-full cursor-not-allowed rounded-xl bg-[#245c46] px-5 py-4 text-sm font-bold text-white opacity-70"
           >
-            {mode === "login"
-              ? "Entrar"
-              : mode === "register"
-                ? "Criar minha conta"
-                : "Enviar instruções"}
+            {mode === "forgot"
+              ? "Enviar instruções"
+              : "Continuar (em breve)"}
           </button>
-          <p className="text-center text-xs text-[#929991]">
-            A autenticação será habilitada após a integração com o backend.
+          <p className="text-center text-xs leading-6 text-[#929991]">
+            Esta área ainda não está integrada ao backend do PetHelp. A
+            autenticação, cadastro e recuperação de acesso serão habilitados em
+            uma etapa futura.
           </p>
         </form>
 

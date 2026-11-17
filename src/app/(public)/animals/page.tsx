@@ -11,8 +11,14 @@ export const metadata: Metadata = {
 };
 
 type AnimalsPageProps = {
-  searchParams: Promise<{ q?: string | string[] }>;
+  searchParams: Promise<{ q?: string | string[]; species?: string | string[] }>;
 };
+
+const speciesFilters = [
+  { label: "Todos", value: "todos" },
+  { label: "Cachorros", value: "Cachorro" },
+  { label: "Gatos", value: "Gato" },
+] as const;
 
 async function AnimalsResults({ searchParams }: AnimalsPageProps) {
   const resolvedSearchParams = await searchParams;
@@ -20,19 +26,30 @@ async function AnimalsResults({ searchParams }: AnimalsPageProps) {
   const query = Array.isArray(rawQuery) ? rawQuery[0] ?? "" : rawQuery ?? "";
   const normalizedQuery = query.trim().toLowerCase();
 
-  const filteredAnimals = normalizedQuery
-    ? animals.filter((animal) => {
-        const haystack = [
-          animal.name,
-          animal.species,
-          animal.breed,
-          animal.location,
-        ]
-          .join(" ")
-          .toLowerCase();
-        return haystack.includes(normalizedQuery);
-      })
-    : animals;
+  const rawSpecies = resolvedSearchParams.species;
+  const selectedSpecies = Array.isArray(rawSpecies)
+    ? rawSpecies[0] ?? "todos"
+    : rawSpecies ?? "todos";
+  const activeSpecies = speciesFilters.some((item) => item.value === selectedSpecies)
+    ? selectedSpecies
+    : "todos";
+
+  const filteredAnimals = animals.filter((animal) => {
+    const matchesSpecies =
+      activeSpecies === "todos" || animal.species === activeSpecies;
+    if (!matchesSpecies) {
+      return false;
+    }
+    if (!normalizedQuery) {
+      return true;
+    }
+    const haystack = [animal.name, animal.species, animal.breed, animal.location]
+      .join(" ")
+      .toLowerCase();
+    return haystack.includes(normalizedQuery);
+  });
+
+  const hasActiveFilters = normalizedQuery.length > 0 || activeSpecies !== "todos";
 
   return (
     <>
@@ -41,6 +58,9 @@ async function AnimalsResults({ searchParams }: AnimalsPageProps) {
         method="get"
         className="mt-8 flex max-w-2xl flex-col gap-3 rounded-2xl border border-[#e7e9e2] bg-white p-3 shadow-lg shadow-[#334b37]/5 sm:flex-row"
       >
+        {activeSpecies !== "todos" ? (
+          <input type="hidden" name="species" value={activeSpecies} />
+        ) : null}
         <label className="flex min-w-0 flex-1 items-center gap-3 px-3">
           <Search size={20} className="shrink-0 text-[#78917b]" />
           <input
@@ -59,20 +79,62 @@ async function AnimalsResults({ searchParams }: AnimalsPageProps) {
         </button>
       </form>
 
-      {normalizedQuery ? (
+      <div className="mt-4 flex flex-wrap gap-2">
+        {speciesFilters.map((filter) => {
+          const isActive = activeSpecies === filter.value;
+          const href =
+            filter.value === "todos"
+              ? query
+                ? `/animals?q=${encodeURIComponent(query)}`
+                : "/animals"
+              : query
+                ? `/animals?species=${encodeURIComponent(filter.value)}&q=${encodeURIComponent(query)}`
+                : `/animals?species=${encodeURIComponent(filter.value)}`;
+
+          return (
+            <Link
+              key={filter.value}
+              href={href}
+              className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                isActive
+                  ? "border-[#245c46] bg-[#245c46] text-white"
+                  : "border-[#dce6dc] bg-white text-[#245c46] hover:bg-[#edf4eb]"
+              }`}
+            >
+              {filter.label}
+            </Link>
+          );
+        })}
+      </div>
+
+      {hasActiveFilters ? (
         <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-[#69736a]">
           <p>
             {filteredAnimals.length} resultado
-            {filteredAnimals.length === 1 ? "" : "s"} para{" "}
-            <span className="font-semibold text-[#293b2f]">
-              &quot;{query.trim()}&quot;
-            </span>
+            {filteredAnimals.length === 1 ? "" : "s"}
+            {normalizedQuery ? (
+              <>
+                {" "}
+                para{" "}
+                <span className="font-semibold text-[#293b2f]">
+                  &quot;{query.trim()}&quot;
+                </span>
+              </>
+            ) : null}
+            {activeSpecies !== "todos" ? (
+              <>
+                {normalizedQuery ? " em " : " em "}
+                <span className="font-semibold text-[#293b2f]">
+                  {activeSpecies === "Cachorro" ? "cachorros" : "gatos"}
+                </span>
+              </>
+            ) : null}
           </p>
           <Link
             href="/animals"
             className="font-semibold text-[#245c46] underline-offset-4 hover:underline"
           >
-            Limpar pesquisa
+            Limpar filtros
           </Link>
         </div>
       ) : null}
@@ -89,14 +151,16 @@ async function AnimalsResults({ searchParams }: AnimalsPageProps) {
             Nenhum animal encontrado
           </h2>
           <p className="mt-3 text-sm leading-7 text-[#778078]">
-            Não encontramos resultados para &quot;{query.trim()}&quot;. Tente
-            buscar por outro nome, espécie, raça ou localização.
+            {normalizedQuery
+              ? `Não encontramos resultados para "${query.trim()}".`
+              : "Não encontramos animais com os filtros selecionados."}{" "}
+            Tente ajustar sua busca ou os filtros.
           </p>
           <Link
             href="/animals"
             className="mt-6 inline-flex items-center justify-center rounded-full bg-[#245c46] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#194532]"
           >
-            Limpar pesquisa
+            Limpar filtros
           </Link>
         </div>
       )}
