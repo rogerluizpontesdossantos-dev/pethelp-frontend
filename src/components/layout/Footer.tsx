@@ -1,8 +1,13 @@
 
+"use client";
+
 import Link from "next/link";
+import { useCookieConsent } from "@/components/cookies/CookieConsentProvider";
 import { Heart, Mail } from "lucide-react";
 
 export default function Footer() {
+  const { openPreferences } = useCookieConsent();
+
   return (
     <footer className="bg-[#1d382c] text-white">
       <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 md:grid-cols-3 lg:px-8">
@@ -76,7 +81,15 @@ export default function Footer() {
       </div>
 
       <div className="border-t border-white/10 px-5 py-6 text-center text-xs text-white/45">
-        © 2026 PetHelp. Todos os direitos reservados.
+        © 2026 PetHelp. Todos os direitos reservados.{" "}
+        <button
+          type="button"
+          onClick={openPreferences}
+          className="ml-2 underline underline-offset-2 hover:text-white"
+          aria-label="Preferências de cookies"
+        >
+          Preferências de Cookies
+        </button>
       </div>
     </footer>
   );

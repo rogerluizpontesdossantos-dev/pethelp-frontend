@@ -1,6 +1,8 @@
 
 import type { Metadata } from "next";
 import "./globals.css";
+import { CookieConsentProvider } from "@/components/cookies/CookieConsentProvider";
+import { CookieConsentPanel } from "@/components/cookies/CookieConsentPanel";
 
 export const metadata: Metadata = {
   title: {
@@ -18,7 +20,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body>{children}</body>
+      <body>
+        <CookieConsentProvider>
+          {children}
+          <CookieConsentPanel />
+        </CookieConsentProvider>
+      </body>
     </html>
   );
 }
